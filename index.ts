@@ -17,20 +17,12 @@ const extractContactInfo = (personContainer: Element) => {
       const infoEntryKey = (() => {
         if (!infoIcon) {
           return 'website';
-        } else if (infoIcon.className.includes('envelope')) {
-          return 'email';
-        } else if (infoIcon.className.includes('facebook')) {
-          return 'facebook';
-        } else if (infoIcon.className.includes('instagram')) {
-          return 'instagram';
-        } else if (infoIcon.className.includes('phone')) {
-          return 'phone';
-        } else if (infoIcon.className.includes('twitter')) {
-          return 'twitter';
-        } else {
-          return 'other';
         }
-      })(); 
+        if (infoIcon.className.includes('envelope')) {
+          return 'email';
+        } 
+        return ['facebook', 'instagram', 'phone', 'twitter'].find((k) => infoIcon.className.includes(k)) ?? 'other';
+       })();
       const infoEntryValue = infoIcon?.nextSibling?.textContent ?? infoDiv.getElementsByTagName('a')[0].textContent;
       return [infoEntryKey, infoEntryValue];
     }))
