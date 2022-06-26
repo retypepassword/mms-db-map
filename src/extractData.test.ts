@@ -1,6 +1,6 @@
 import { JSDOM } from 'jsdom';
-import { extractData } from './index';
-import { htmlOnePersonPerCity, htmlMultiplePeoplePerCity, htmlAllContactInfo } from './indexTestData';
+import { extractData } from './extractData';
+import { htmlOnePersonPerCity, htmlMultiplePeoplePerCity, htmlAllContactInfo } from './extractDataTestData.testHelper';
 
 describe('extractData', () => {
   it("gets name, city, state, country correctly when there's only one city per state and one person per city", () => {
