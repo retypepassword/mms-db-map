@@ -4,15 +4,17 @@ export const scraper = (document: Document) => {
     const contactInfo = Object.fromEntries(
       Array.from(person.getElementsByClassName('cguide_info')).map((infoElement => {
         const infoIcon = infoElement.getElementsByTagName('i')[0];
-        const infoEntryKey = !infoIcon ? 'website' :
-          infoIcon?.className.includes('envelope') ? 'email' :
-          infoIcon?.className.includes('facebook') ? 'facebook' :
-          infoIcon?.className.includes('instagram') ? 'instagram' :
-          infoIcon?.className.includes('phone') ? 'phone' :
-          infoIcon?.className.includes('twitter') ? 'twitter' :
-          'other';
-        const infoEntryValue = infoIcon?.nextSibling?.textContent ?? infoElement.getElementsByTagName('a')[0].textContent
-        return [infoEntryKey, infoEntryValue]
+        const infoEntryKey = [
+          { key: 'website', when: () => !infoIcon },
+          { key: 'email', when: () => infoIcon?.className.includes('envelope') },
+          { key: 'facebook', when: () => infoIcon?.className.includes('facebook') },
+          { key: 'instagram', when: () => infoIcon?.className.includes('instagram') },
+          { key: 'phone', when: () => infoIcon?.className.includes('phone') },
+          { key: 'twitter', when: () => infoIcon?.className.includes('twitter') },
+          { key: 'other', when: () => 'otherwise' },
+        ].find(({ when }) => when())?.key as string;
+        const infoEntryValue = infoIcon?.nextSibling?.textContent ?? infoElement.getElementsByTagName('a')[0].textContent;
+        return [infoEntryKey, infoEntryValue];
       }))
     );
 
