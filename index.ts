@@ -1,4 +1,4 @@
-export const scraper = (document: Document) => {
+export const extractData = (document: Document) => {
   const people = Array.from(document.getElementsByClassName('guideTable'));
   return people.map((person) => {
     const contactInfo = Object.fromEntries(

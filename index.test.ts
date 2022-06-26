@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import { scraper } from './index';
+import { extractData } from './index';
 
 describe('the scraper', () => {
   it("gets name, city, state, country correctly when there's only one city per state and one person per city", () => {
@@ -84,7 +84,7 @@ describe('the scraper', () => {
       </div>
     `;
     const dom = new JSDOM(sampleHTML);
-    const result = scraper(dom.window.document);
+    const result = extractData(dom.window.document);
     expect(result).toEqual([
       expect.objectContaining({
         name: 'Francisco Ferreira de Oliveira Junior',
@@ -151,7 +151,7 @@ describe('the scraper', () => {
       </div>
     `
     const dom = new JSDOM(sampleHTML);
-    const result = scraper(dom.window.document);
+    const result = extractData(dom.window.document);
     expect(result).toEqual([
       {
         name: 'Carla Senft',
@@ -255,7 +255,7 @@ describe('the scraper', () => {
       </div>
     `;
     const dom = new JSDOM(sampleHTML);
-    const result = scraper(dom.window.document);
+    const result = extractData(dom.window.document);
     expect(result).toEqual([
       expect.objectContaining({
         name: 'Thalya Alves Aragão',
