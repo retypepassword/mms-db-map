@@ -14,15 +14,23 @@ const extractContactInfo = (personContainer: Element) => {
     Array.from(personContainer.getElementsByClassName('cguide_info')).map((infoDiv => {
       const infoIcon = infoDiv.getElementsByTagName('i')[0];
 
-      const infoEntryKey = [
-        { key: 'website', when: () => !infoIcon },
-        { key: 'email', when: () => infoIcon?.className.includes('envelope') },
-        { key: 'facebook', when: () => infoIcon?.className.includes('facebook') },
-        { key: 'instagram', when: () => infoIcon?.className.includes('instagram') },
-        { key: 'phone', when: () => infoIcon?.className.includes('phone') },
-        { key: 'twitter', when: () => infoIcon?.className.includes('twitter') },
-        { key: 'other', when: () => 'otherwise' },
-      ].find(({ when }) => when())?.key as string;
+      const infoEntryKey = (() => {
+        if (!infoIcon) {
+          return 'website';
+        } else if (infoIcon.className.includes('envelope')) {
+          return 'email';
+        } else if (infoIcon.className.includes('facebook')) {
+          return 'facebook';
+        } else if (infoIcon.className.includes('instagram')) {
+          return 'instagram';
+        } else if (infoIcon.className.includes('phone')) {
+          return 'phone';
+        } else if (infoIcon.className.includes('twitter')) {
+          return 'twitter';
+        } else {
+          return 'other';
+        }
+      })(); 
       const infoEntryValue = infoIcon?.nextSibling?.textContent ?? infoDiv.getElementsByTagName('a')[0].textContent;
       return [infoEntryKey, infoEntryValue];
     }))
