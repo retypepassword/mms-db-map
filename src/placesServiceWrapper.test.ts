@@ -14,6 +14,11 @@ describe('placesServiceWrapper', () => {
   beforeEach(() => {
     jest.useRealTimers();
 
+    (global as any).localStorage = {
+      getItem: jest.fn().mockReturnValue(null),
+      setItem: jest.fn(),
+    };
+
     initializeMockGoogleMaps();
     geocodingService = {
       geocode: jest.fn().mockImplementation((_query, callback) => callback(

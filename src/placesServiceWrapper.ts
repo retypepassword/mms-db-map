@@ -13,7 +13,11 @@ export class PlacesServiceWrapper {
 
   constructor(geocodingService: google.maps.Geocoder, limitMs: number = DEFAULT_LIMIT_MS) {
     this.geocodingService = geocodingService;
-    this.cache = {};
+    this.cache = Object.fromEntries(
+        (JSON.parse(localStorage.getItem("keys") ?? '[]') as string[]).map((key) =>
+        [key, JSON.parse(localStorage.getItem(key) ?? '[]') as PlaceInfo[]]
+      )
+    );
 
     this.requestQueue = [];
     this.limitMs = limitMs;
@@ -41,6 +45,8 @@ export class PlacesServiceWrapper {
       };
       this.addToQueue(query);
     });
+    localStorage.setItem("keys", JSON.stringify([...JSON.parse(localStorage.getItem("keys") ?? '[]'), search]));
+    localStorage.setItem(search, JSON.stringify(await this.cache[search]));
     return this.cache[search];
   };
 
