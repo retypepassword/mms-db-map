@@ -24,6 +24,7 @@ document.write(`
   <html>
     <head>
       <title>Certified Professionals</title>
+      <link href="/assets/css/app.css" rel="stylesheet" type="text/css">
       <style type="text/css">
         #map {
           height: 100%;
@@ -33,6 +34,32 @@ document.write(`
           height: 100%;
           margin: 0;
           padding: 0;
+        }
+
+        .person-name, .place-name {
+          font-size: 16px;
+        }
+
+        .place-name {
+          margin-bottom: 10px;
+          font-weight: bold;
+        }
+
+        .info-list {
+          list-style-type: none;
+          padding: 0 0 0 4px;
+        }
+
+        .info-list a {
+          color: #566295 !important;
+          font-size: 12px;
+          line-height: 14px;
+          padding: 0px;
+          margin: 0px;
+        }
+
+        .info-list a span {
+          margin-right: 2px;
         }
       </style>
     </head>
@@ -97,16 +124,16 @@ document.write(`
         map,
       });
       const infoWindow = new google.maps.InfoWindow({
-        content: `<div><b>${person[0].place_name}</b>` + person.map((data) => `
+        content: `<div><div class="place-name">${person[0].place_name}</div>` + person.map((data) => `
           <div>
-            <b>${data.name}</b>
-            <ul>
-              ${data.website ? "<li>" + data.website + "</li>" : ''}
-              ${data.email ? "<li>" + data.email + "</li>" : ''}
-              ${data.phone ? "<li>" + data.phone + "</li>" : ''}
-              ${data.facebook ? "<li>" + data.facebook + "</li>" : ''}
-              ${data.instagram ? "<li>" + data.instagram + "</li>" : ''}
-              ${data.twitter ? "<li>" + data.twitter + "</li>" : ''}
+            <span class="person-name">${data.name}</span>
+            <ul class="info-list">
+              ${data.website ? `<li><a href="${data.website}" target="_blank">` + data.website + "</a></li>" : ''}
+              ${data.email ? `<li><a href="mailto:${data.email}"><span class="fa fa-fw fa-envelope"></span>` + data.email + "</a></li>" : ''}
+              ${data.phone ? `<li><a href="tel:${data.phone}"><span class="fa fa-fw fa-phone-square"></span>` + data.phone + "</a></li>" : ''}
+              ${data.facebook ? `<li><a href="${data.facebook}"><span class="fa fa-fw fa-facebook-square"></span>` + data.facebook + "</a></li>" : ''}
+              ${data.twitter ? `<li><a href="${data.twitter}"><span class="fa fa-fw fa-twitter-square"></span>` + data.twitter + "</a></li>" : ''}
+              ${data.instagram ? `<li><a href="${data.instagram}"><span class="fa fa-fw fa-instagram"></span>` + data.instagram + "</a></li>" : ''}
             </ul>
           </div>
         `).join('') + "</div>"
