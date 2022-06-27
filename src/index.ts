@@ -59,7 +59,7 @@ document.write(`
     zoom: DEFAULT_ZOOM_LEVEL,
   });
 
-  const placesService = new PlacesServiceWrapper(new google.maps.places.PlacesService(map));
+  const geocodingService = new PlacesServiceWrapper(new google.maps.Geocoder());
   const personDataWithCityData = await Promise.all(extractedPersonData.map(async (personData): Promise<PersonData | PersonData & PlaceInfo> => {
     const searchStrings = [
       [personData.city, personData.state, personData.country].filter(v => !!v).join(', '),

@@ -3,7 +3,7 @@ export type PlaceInfo = { place_id: string | undefined; location: google.maps.La
 const DEFAULT_LIMIT_MS = 5000;
 
 export class PlacesServiceWrapper {
-  private placesService: google.maps.places.PlacesService;
+  private geocodingService: google.maps.Geocoder;
   private cache: Record<string, PlaceInfo[] | Promise<PlaceInfo[]>>;
 
   private requestQueue: Array<() => void>;
@@ -11,8 +11,8 @@ export class PlacesServiceWrapper {
   private timeLastExecutedUnixMs: number;
   private interval?: NodeJS.Timer;
 
-  constructor(placesService: google.maps.places.PlacesService, limitMs: number = DEFAULT_LIMIT_MS) {
-    this.placesService = placesService;
+  constructor(geocodingService: google.maps.Geocoder, limitMs: number = DEFAULT_LIMIT_MS) {
+    this.geocodingService = geocodingService;
     this.cache = {};
 
     this.requestQueue = [];
@@ -27,8 +27,8 @@ export class PlacesServiceWrapper {
 
     this.cache[search] = new Promise((resolve, reject) => {
       const query = () => {
-        this.placesService.findPlaceFromQuery({ query: search, fields: ['name', 'geometry', 'place_id'] }, (rawResults, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK) {
+        this.geocodingService.geocode({ address: search }, (rawResults, status) => {
+          if (status === 'OK') {
             const results = rawResults?.map((result) => ({ 
               place_id: result.place_id,
               location: result.geometry?.location?.toJSON()
