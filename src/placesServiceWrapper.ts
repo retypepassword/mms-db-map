@@ -1,6 +1,6 @@
 export type PlaceInfo = { place_id: string | undefined; place_name: string | undefined; location: google.maps.LatLngLiteral | undefined };
 
-const DEFAULT_LIMIT_MS = 1000;
+const DEFAULT_LIMIT_MS = 1200;
 
 export class PlacesServiceWrapper {
   private geocodingService: google.maps.Geocoder;
