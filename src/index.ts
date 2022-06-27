@@ -1,5 +1,5 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import { extractData } from "./extractData";
+import { extractData, PersonData } from "./extractData";
 import { PlacesServiceWrapper, PlaceInfo } from './placesServiceWrapper';
 
 const loader = new Loader({
@@ -18,7 +18,7 @@ const getCurrentLocation = (): Promise<GeolocationPosition> => {
   });
 };
 
-const data = extractData(document);
+const extractedPersonData = extractData(document);
 document.write(`
   <!DOCTYPE html>
   <html>
@@ -60,24 +60,66 @@ document.write(`
   });
 
   const placesService = new PlacesServiceWrapper(new google.maps.places.PlacesService(map));
-  const dataWithCityData = await Promise.all(data.map(async (personData): Promise<typeof personData | typeof personData & PlaceInfo> => {
-    try {
-      const cityData = await placesService.findPlace([personData.city, personData.state, personData.country].join(', '));
-      console.log(`Found info for ${personData.city}, ${personData.state}, ${personData.country}`);
-      return { ...personData, ...cityData[0] };
-    } catch(e) {
-      console.log(`Did not find info for ${personData.city}, ${personData.state}, ${personData.country} with error ${e}`);
-      return personData;
+  const personDataWithCityData = await Promise.all(extractedPersonData.map(async (personData): Promise<PersonData | PersonData & PlaceInfo> => {
+    const searchStrings = [
+      [personData.city, personData.state, personData.country].filter(v => !!v).join(', '),
+      [personData.city, personData.country].filter(v => !!v).join(', '),
+      [personData.state, personData.country].filter(v => !!v).join(', '),
+      personData.country ?? '',
+    ];
+    for (let searchString of searchStrings) {
+      try {
+        const cityData = await geocodingService.findPlace(searchString);
+        console.log(`Found info for ${searchString}`);
+        return { ...personData, ...cityData[0] };
+      } catch(e) {
+        console.log(`Did not find info for ${searchString} with error ${e}. Attempting with broader search.`);
+      }
     }
+    return personData;
   }));
 
-  dataWithCityData.forEach((v) => {
-    if ('location' in v) {
-      console.log(`Placing marker for ${v.city}, ${v.state}, ${v.country}`)
-      new google.maps.Marker({
-        position: v.location,
-        map: map
+  const peopleByPlaceId = personDataWithCityData.reduce((uniqueCities, currentPerson) => {
+    const placeId = 'location' in currentPerson && currentPerson.place_id ? currentPerson.place_id : 'other';
+    return {
+      ...uniqueCities,
+      [placeId]: [
+        ...(uniqueCities[placeId] ?? []),
+        currentPerson
+      ]
+    };
+  }, {} as { [index: string]: Array<PersonData & Partial<PlaceInfo>> });
+
+  Object.values(peopleByPlaceId).forEach((person) => {
+    if (person[0].location) {
+      const marker = new google.maps.Marker({
+        position: person[0].location,
+        map,
       });
+      const infoWindow = new google.maps.InfoWindow({
+        content: `<div><b>${
+          [person[0].city, person[0].state, person[0].country].filter(v => !!v).join(', ')
+        }</b>` + person.map((data) => `
+          <div>
+            <b>${data.name}</b>
+            <ul>
+              ${data.website && "<li>" + data.website + "</li>"}
+              ${data.email && "<li>" + data.email + "</li>"}
+              ${data.phone && "<li>" + data.phone + "</li>"}
+              ${data.facebook && "<li>" + data.facebook + "</li>"}
+              ${data.instagram && "<li>" + data.instagram + "</li>"}
+              ${data.twitter && "<li>" + data.twitter + "</li>"}
+            </ul>
+          </div>
+        `).join('') + "</div>"
+      });
+      marker.addListener('click', () => {
+        infoWindow.open({
+          anchor: marker,
+          map,
+          shouldFocus: false,
+        })
+      })
     }
   });
 })();

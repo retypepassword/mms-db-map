@@ -1,4 +1,4 @@
-type PersonData = {
+export type PersonData = {
   name: string | null | undefined;
   city: string | null | undefined;
   state: string | null | undefined;
