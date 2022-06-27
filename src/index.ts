@@ -38,6 +38,7 @@ document.write(`
 
         .person-name, .place-name {
           font-size: 16px;
+          font-weight: 400;
         }
 
         .place-name {
@@ -48,6 +49,7 @@ document.write(`
         .info-list {
           list-style-type: none;
           padding: 0 0 0 4px;
+          font-weight: 400;
         }
 
         .info-list a {
@@ -60,6 +62,10 @@ document.write(`
 
         .info-list a span {
           margin-right: 2px;
+        }
+
+        .not-available {
+          color: gray;
         }
       </style>
     </head>
@@ -117,6 +123,8 @@ document.write(`
     };
   }, {} as { [index: string]: Array<PersonData & Partial<PlaceInfo>> });
 
+  let openInfoWindow: google.maps.InfoWindow | null = null;
+
   Object.values(peopleByPlaceId).forEach((person) => {
     if (person[0].location) {
       const marker = new google.maps.Marker({
@@ -134,17 +142,25 @@ document.write(`
               ${data.facebook ? `<li><a href="${data.facebook}"><span class="fa fa-fw fa-facebook-square"></span>` + data.facebook + "</a></li>" : ''}
               ${data.twitter ? `<li><a href="${data.twitter}"><span class="fa fa-fw fa-twitter-square"></span>` + data.twitter + "</a></li>" : ''}
               ${data.instagram ? `<li><a href="${data.instagram}"><span class="fa fa-fw fa-instagram"></span>` + data.instagram + "</a></li>" : ''}
+              ${!data.website && !data.email && !data.phone && !data.facebook && !data.twitter && !data.instagram ? '<li><span class="not-available">No contact information available</span></li>' : ''}
             </ul>
           </div>
         `).join('') + "</div>"
       });
       marker.addListener('click', () => {
+        openInfoWindow?.close();
+        openInfoWindow = infoWindow;
         infoWindow.open({
           anchor: marker,
           map,
           shouldFocus: false,
-        })
+        });
       })
     }
+  });
+
+  google.maps.event.addListener(map, 'click', () => {
+    openInfoWindow?.close();
+    openInfoWindow = null;
   });
 })();
