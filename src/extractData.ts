@@ -1,4 +1,17 @@
-export const extractData = (document: Document) => {
+type PersonData = {
+  name: string | null | undefined;
+  city: string | null | undefined;
+  state: string | null | undefined;
+  country: string | null | undefined;
+  phone?: string;
+  email?: string;
+  website?: string;
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+}
+
+export const extractData = (document: Document): PersonData[] => {
   const personInfoContainers = Array.from(document.getElementsByClassName('guideTable'));
   return personInfoContainers.map((personContainer) => ({
     name: personContainer.getElementsByClassName('cguide')[0].textContent,
