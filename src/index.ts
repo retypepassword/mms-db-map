@@ -97,18 +97,16 @@ document.write(`
         map,
       });
       const infoWindow = new google.maps.InfoWindow({
-        content: `<div><b>${
-          [person[0].city, person[0].state, person[0].country].filter(v => !!v).join(', ')
-        }</b>` + person.map((data) => `
+        content: `<div><b>${person[0].place_name}</b>` + person.map((data) => `
           <div>
             <b>${data.name}</b>
             <ul>
-              ${data.website && "<li>" + data.website + "</li>"}
-              ${data.email && "<li>" + data.email + "</li>"}
-              ${data.phone && "<li>" + data.phone + "</li>"}
-              ${data.facebook && "<li>" + data.facebook + "</li>"}
-              ${data.instagram && "<li>" + data.instagram + "</li>"}
-              ${data.twitter && "<li>" + data.twitter + "</li>"}
+              ${data.website ? "<li>" + data.website + "</li>" : ''}
+              ${data.email ? "<li>" + data.email + "</li>" : ''}
+              ${data.phone ? "<li>" + data.phone + "</li>" : ''}
+              ${data.facebook ? "<li>" + data.facebook + "</li>" : ''}
+              ${data.instagram ? "<li>" + data.instagram + "</li>" : ''}
+              ${data.twitter ? "<li>" + data.twitter + "</li>" : ''}
             </ul>
           </div>
         `).join('') + "</div>"

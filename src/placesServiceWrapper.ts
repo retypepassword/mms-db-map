@@ -1,4 +1,4 @@
-export type PlaceInfo = { place_id: string | undefined; location: google.maps.LatLngLiteral | undefined };
+export type PlaceInfo = { place_id: string | undefined; place_name: string | undefined; location: google.maps.LatLngLiteral | undefined };
 
 const DEFAULT_LIMIT_MS = 1000;
 
@@ -30,6 +30,7 @@ export class PlacesServiceWrapper {
         this.geocodingService.geocode({ address: search }, (rawResults, status) => {
           if (status === 'OK') {
             const results = rawResults?.map((result) => ({ 
+              place_name: result.formatted_address,
               place_id: result.place_id,
               location: result.geometry?.location?.toJSON()
             })) ?? [];

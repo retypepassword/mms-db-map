@@ -4,6 +4,7 @@ import { PlacesServiceWrapper } from './placesServiceWrapper';
 describe('placesServiceWrapper', () => {
   let geocodingService: google.maps.Geocoder;
 
+  const NAME = "Somewhere, USA";
   const PLACE_ID = "ChIJ_YRChQeD44kRYVc8MchM-6c";
   const LAT_LNG = { lat: 42.3479782, lng: -71.2471097 };
 
@@ -23,7 +24,8 @@ describe('placesServiceWrapper', () => {
               location: {
                 toJSON: jest.fn().mockReturnValue(LAT_LNG),
               }
-            }
+            },
+            formatted_address: NAME,
           }
         ],
         'OK',
@@ -40,6 +42,7 @@ describe('placesServiceWrapper', () => {
     const placesServiceWrapper = makePlacesWrapper();
     const place = await placesServiceWrapper.findPlace(QUERY);
     expect(place).toEqual([{
+      place_name: NAME,
       place_id: PLACE_ID,
       location: LAT_LNG,
     }]);
@@ -55,6 +58,7 @@ describe('placesServiceWrapper', () => {
     const placesServiceWrapper = makePlacesWrapper();
     const place = await placesServiceWrapper.findPlace(QUERY);
     expect(place).toEqual([{
+      place_name: NAME,
       place_id: PLACE_ID,
       location: LAT_LNG,
     }]);
@@ -66,6 +70,7 @@ describe('placesServiceWrapper', () => {
 
     const shouldBeCached = await placesServiceWrapper.findPlace(QUERY);
     expect(shouldBeCached).toEqual([{
+      place_name: NAME,
       place_id: PLACE_ID,
       location: LAT_LNG,
     }]);
@@ -193,10 +198,12 @@ describe('placesServiceWrapper', () => {
     placesServiceWrapper.findPlace(QUERY);
     placesServiceWrapper.findPlace(QUERY);
     await expect(placesServiceWrapper.findPlace(QUERY)).resolves.toEqual([{
+      place_name: NAME,
       place_id: PLACE_ID,
       location: LAT_LNG,
     }]);
     await expect(placesServiceWrapper.findPlace(QUERY)).resolves.toEqual([{
+      place_name: NAME,
       place_id: PLACE_ID,
       location: LAT_LNG,
     }]);
