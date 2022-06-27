@@ -8,7 +8,7 @@ export class PlacesServiceWrapper {
 
   private requestQueue: Array<() => void>;
   private limitMs: number;
-  private lastRunTimeUnixMs: number;
+  private timeLastExecutedUnixMs: number;
   private interval?: NodeJS.Timer;
 
   constructor(placesService: google.maps.places.PlacesService, limitMs: number = DEFAULT_LIMIT_MS) {
@@ -17,7 +17,7 @@ export class PlacesServiceWrapper {
 
     this.requestQueue = [];
     this.limitMs = limitMs;
-    this.lastRunTimeUnixMs = 0;
+    this.timeLastExecutedUnixMs = 0;
   }
 
   findPlace = async (search: string): Promise<PlaceInfo[]> => {
@@ -52,14 +52,14 @@ export class PlacesServiceWrapper {
   }
 
   private startProcessingQueue = () => {
-    const millisecondsSinceLastRun = Date.now() - this.lastRunTimeUnixMs;
+    const millisecondsSinceLastRun = Date.now() - this.timeLastExecutedUnixMs;
     const nextWaitTime =
       millisecondsSinceLastRun > this.limitMs
         ? 0
         : this.limitMs - millisecondsSinceLastRun;
 
-    const runNextItem = () => {
-      this.lastRunTimeUnixMs = Date.now();
+    const executeNextItemAndClearIntervalIfQueueEmpty = () => {
+      this.timeLastExecutedUnixMs = Date.now();
       this.requestQueue.shift()?.();
       if (this.requestQueue.length === 0) {
         clearInterval(this.interval);
@@ -67,8 +67,8 @@ export class PlacesServiceWrapper {
     };
 
     setTimeout(() => {
-      this.interval = setInterval(runNextItem, this.limitMs);
-      runNextItem();
+      this.interval = setInterval(executeNextItemAndClearIntervalIfQueueEmpty, this.limitMs);
+      executeNextItemAndClearIntervalIfQueueEmpty();
     }, nextWaitTime);
   }
 }

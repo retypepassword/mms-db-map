@@ -8,6 +8,8 @@ describe('placesServiceWrapper', () => {
   const LAT_LNG = { lat: 42.3479782, lng: -71.2471097 };
 
   beforeEach(() => {
+    jest.useRealTimers();
+
     initializeMockGoogleMaps();
     (global as any).google.maps.places.PlacesServiceStatus = {
       INVALID_REQUEST: 'INVALID_REQUEST',
@@ -125,8 +127,72 @@ describe('placesServiceWrapper', () => {
       { query: QUERY_3, fields: ['name', 'geometry', 'place_id'] },
       expect.any(Function),
     );
+  });
 
-    jest.useRealTimers();
+  it("doesn't run two intervals at the same time", async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(5000);
+    const QUERY_1 = "Auburndale, MA, United States";
+    const QUERY_2 = "Somerville, MA, United States";
+    const QUERY_3 = "Boston, MA, United States";
+    const QUERY_4 = "Fortaleza, CE, Brazil";
+    const QUERY_5 = "Porto Alegre, RS, Brazil";
+    const QUERY_6 = "Sao Paulo, SP, Brazil";
+    const QUERY_7 = "Florianopolis, SC, Brazil";
+
+    const placesServiceWrapper = new PlacesServiceWrapper(placesService);
+    placesServiceWrapper.findPlace(QUERY_1);
+    jest.advanceTimersByTime(0); // Query runs after timeout of 0, so gotta advance by 0 ms for next tick
+    await Promise.resolve();
+
+    placesServiceWrapper.findPlace(QUERY_2);
+    jest.advanceTimersByTime(0);
+    await Promise.resolve();
+
+    placesServiceWrapper.findPlace(QUERY_3);
+    jest.advanceTimersByTime(0);
+    await Promise.resolve();
+
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(5000);
+    jest.setSystemTime(10000)
+    await Promise.resolve();
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledTimes(2);
+    jest.advanceTimersByTime(5000);
+    jest.setSystemTime(15000)
+    await Promise.resolve();
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledTimes(3);
+    jest.advanceTimersByTime(5000);
+    jest.setSystemTime(20000)
+    await Promise.resolve();
+
+    placesServiceWrapper.findPlace(QUERY_4);
+    jest.advanceTimersByTime(0);
+    await Promise.resolve();
+
+    placesServiceWrapper.findPlace(QUERY_5);
+    jest.advanceTimersByTime(0);
+    await Promise.resolve();
+
+    placesServiceWrapper.findPlace(QUERY_6);
+    jest.advanceTimersByTime(0);
+    await Promise.resolve();
+
+    placesServiceWrapper.findPlace(QUERY_7);
+    jest.advanceTimersByTime(0);
+    await Promise.resolve();
+
+    expect(placesService.findPlaceFromQuery).not.toHaveBeenCalledTimes(3);
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledTimes(4);
+    jest.advanceTimersByTime(5000);
+    jest.setSystemTime(25000)
+    await Promise.resolve();
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledTimes(5);
+    jest.advanceTimersByTime(5000);
+    jest.setSystemTime(35000)
+    await Promise.resolve();
+    expect(placesService.findPlaceFromQuery).not.toHaveBeenCalledTimes(7);
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledTimes(6);
   });
 
   it('uses cache and returns from cache as soon as possible even when hit a bajillion times simultaneously with the same query', async () => {
