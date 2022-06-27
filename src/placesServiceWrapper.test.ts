@@ -128,4 +128,27 @@ describe('placesServiceWrapper', () => {
 
     jest.useRealTimers();
   });
+
+  it('uses cache and returns from cache as soon as possible even when hit a bajillion times simultaneously with the same query', async () => {
+    const QUERY = "Auburndale, MA, United States";
+
+    const placesServiceWrapper = new PlacesServiceWrapper(placesService);
+    placesServiceWrapper.findPlace(QUERY);
+    placesServiceWrapper.findPlace(QUERY);
+    placesServiceWrapper.findPlace(QUERY);
+    await expect(placesServiceWrapper.findPlace(QUERY)).resolves.toEqual([{
+      place_id: PLACE_ID,
+      location: LAT_LNG,
+    }]);
+    await expect(placesServiceWrapper.findPlace(QUERY)).resolves.toEqual([{
+      place_id: PLACE_ID,
+      location: LAT_LNG,
+    }]);
+
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledTimes(1);
+    expect(placesService.findPlaceFromQuery).toHaveBeenCalledWith(
+      { query: QUERY, fields: ['name', 'geometry', 'place_id'] },
+      expect.any(Function),
+    );
+  });
 })

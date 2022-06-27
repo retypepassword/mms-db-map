@@ -4,7 +4,7 @@ const DEFAULT_LIMIT_MS = 5000;
 
 export class PlacesServiceWrapper {
   private placesService: google.maps.places.PlacesService;
-  private cache: Record<string, PlaceInfo[]>;
+  private cache: Record<string, PlaceInfo[] | Promise<PlaceInfo[]>>;
 
   private requestQueue: Array<() => void>;
   private limitMs: number;
@@ -25,7 +25,7 @@ export class PlacesServiceWrapper {
       return this.cache[search];
     }
 
-    return new Promise((resolve, reject) => {
+    this.cache[search] = new Promise((resolve, reject) => {
       const query = () => {
         this.placesService.findPlaceFromQuery({ query: search, fields: ['name', 'geometry', 'place_id'] }, (rawResults, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -33,7 +33,6 @@ export class PlacesServiceWrapper {
               place_id: result.place_id,
               location: result.geometry?.location?.toJSON()
             })) ?? [];
-            this.cache[search] = results;
             return resolve(results);
           }
           reject(status);
@@ -41,6 +40,7 @@ export class PlacesServiceWrapper {
       };
       this.addToQueue(query);
     });
+    return this.cache[search];
   };
 
   private addToQueue = (fn: () => void) => {
