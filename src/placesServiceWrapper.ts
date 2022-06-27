@@ -29,33 +29,31 @@ export class PlacesServiceWrapper {
       return this.cache[search];
     }
 
-    this.cache[search] = new Promise((resolve, reject) => {
-      const query = () => {
-        this.geocodingService.geocode({ address: search }, (rawResults, status) => {
-          if (status === 'OK') {
-            const results = rawResults?.map((result) => ({ 
-              place_name: result.formatted_address,
-              place_id: result.place_id,
-              location: result.geometry?.location?.toJSON()
-            })) ?? [];
-            return resolve(results);
-          }
-          reject(status);
-        });
-      };
-      this.addToQueue(query);
+    this.cache[search] = this.processInQueue(async () => {
+      const resp = await this.geocodingService.geocode({ address: search })
+      return resp.results.map((result) => ({
+        place_name: result.formatted_address,
+        place_id: result.place_id,
+        location: result.geometry?.location?.toJSON()
+      }));
     });
+
     localStorage.setItem("keys", JSON.stringify([...JSON.parse(localStorage.getItem("keys") ?? '[]'), search]));
     localStorage.setItem(search, JSON.stringify(await this.cache[search]));
     return this.cache[search];
   };
 
-  private addToQueue = (fn: () => void) => {
-    this.requestQueue.push(fn);
+  private processInQueue = <T>(fn: () => Promise<T>) => {
+    const fnWrappedInQueuePromise = new Promise<T>((resolve, reject) => {
+      const query = () => fn().then(resolve).catch(reject);
+      this.requestQueue.push(query);
+    });
 
     if (this.requestQueue.length === 1) {
       this.startProcessingQueue();
     }
+
+    return fnWrappedInQueuePromise;
   }
 
   private startProcessingQueue = () => {

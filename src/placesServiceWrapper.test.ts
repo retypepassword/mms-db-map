@@ -20,21 +20,25 @@ describe('placesServiceWrapper', () => {
     };
 
     initializeMockGoogleMaps();
+    const mockReturnValue = {
+      place_id: PLACE_ID,
+      geometry: {
+        location: {
+          toJSON: jest.fn().mockReturnValue(LAT_LNG),
+        }
+      },
+      formatted_address: NAME,
+    }
     geocodingService = {
-      geocode: jest.fn().mockImplementation((_query, callback) => callback(
-        [
-          {
-            place_id: PLACE_ID,
-            geometry: {
-              location: {
-                toJSON: jest.fn().mockReturnValue(LAT_LNG),
-              }
-            },
-            formatted_address: NAME,
-          }
-        ],
-        'OK',
-      )),
+      geocode: jest.fn().mockImplementation((_query, callback) => {
+        callback?.(
+          [mockReturnValue],
+          'OK',
+        );
+        return Promise.resolve({
+          results: [mockReturnValue]
+        });
+      }),
     };
   });
 
@@ -54,7 +58,6 @@ describe('placesServiceWrapper', () => {
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
     expect(geocodingService.geocode).toHaveBeenCalledWith(
       { address: QUERY },
-      expect.any(Function),
     );
   });
 
@@ -70,7 +73,6 @@ describe('placesServiceWrapper', () => {
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
     expect(geocodingService.geocode).toHaveBeenCalledWith(
       { address: QUERY },
-      expect.any(Function),
     );
 
     const shouldBeCached = await placesServiceWrapper.findPlace(QUERY);
@@ -105,7 +107,6 @@ describe('placesServiceWrapper', () => {
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
     expect(geocodingService.geocode).toHaveBeenCalledWith(
       { address: QUERY_1 },
-      expect.any(Function),
     );
     jest.advanceTimersByTime(SOME_AMOUNT_OF_TIME_LESS_THAN_LIMIT_MS);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
@@ -115,7 +116,6 @@ describe('placesServiceWrapper', () => {
     expect(geocodingService.geocode).toHaveBeenCalledTimes(2);
     expect(geocodingService.geocode).toHaveBeenCalledWith(
       { address: QUERY_2 },
-      expect.any(Function),
     );
     jest.advanceTimersByTime(SOME_AMOUNT_OF_TIME_LESS_THAN_LIMIT_MS);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(2);
@@ -125,7 +125,6 @@ describe('placesServiceWrapper', () => {
     expect(geocodingService.geocode).toHaveBeenCalledTimes(3);
     expect(geocodingService.geocode).toHaveBeenCalledWith(
       { address: QUERY_3 },
-      expect.any(Function),
     );
   });
 
@@ -216,7 +215,6 @@ describe('placesServiceWrapper', () => {
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
     expect(geocodingService.geocode).toHaveBeenCalledWith(
       { address: QUERY },
-      expect.any(Function),
     );
   });
 })
