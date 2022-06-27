@@ -7,6 +7,9 @@ describe('placesServiceWrapper', () => {
   const PLACE_ID = "ChIJ_YRChQeD44kRYVc8MchM-6c";
   const LAT_LNG = { lat: 42.3479782, lng: -71.2471097 };
 
+  const LIMIT_MS = 5000;
+  const makePlacesWrapper = () => new PlacesServiceWrapper(geocodingService, LIMIT_MS);
+
   beforeEach(() => {
     jest.useRealTimers();
 
@@ -34,7 +37,7 @@ describe('placesServiceWrapper', () => {
 
   it('has a findPlace method that calls geocode', async () => {
     const QUERY = "Auburndale, MA, United States";
-    const placesServiceWrapper = new PlacesServiceWrapper(geocodingService);
+    const placesServiceWrapper = makePlacesWrapper();
     const place = await placesServiceWrapper.findPlace(QUERY);
     expect(place).toEqual([{
       place_id: PLACE_ID,
@@ -49,7 +52,7 @@ describe('placesServiceWrapper', () => {
 
   it('caches results', async () => {
     const QUERY = "Auburndale, MA, United States";
-    const placesServiceWrapper = new PlacesServiceWrapper(geocodingService);
+    const placesServiceWrapper = makePlacesWrapper();
     const place = await placesServiceWrapper.findPlace(QUERY);
     expect(place).toEqual([{
       place_id: PLACE_ID,
@@ -74,8 +77,9 @@ describe('placesServiceWrapper', () => {
     const QUERY_1 = "Auburndale, MA, United States";
     const QUERY_2 = "Somerville, MA, United States";
     const QUERY_3 = "Boston, MA, United States";
+    const SOME_AMOUNT_OF_TIME_LESS_THAN_LIMIT_MS = LIMIT_MS / 5;
 
-    const placesServiceWrapper = new PlacesServiceWrapper(geocodingService);
+    const placesServiceWrapper = makePlacesWrapper();
     placesServiceWrapper.findPlace(QUERY_1);
     jest.advanceTimersByTime(0); // Query runs after timeout of 0, so gotta advance by 0 ms for next tick
     await Promise.resolve();
@@ -93,9 +97,9 @@ describe('placesServiceWrapper', () => {
       { address: QUERY_1 },
       expect.any(Function),
     );
-    jest.advanceTimersByTime(1000);
+    jest.advanceTimersByTime(SOME_AMOUNT_OF_TIME_LESS_THAN_LIMIT_MS);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(LIMIT_MS);
     await Promise.resolve(); // Put next expect in microtask https://stackoverflow.com/a/57534747/2484443
 
     expect(geocodingService.geocode).toHaveBeenCalledTimes(2);
@@ -103,9 +107,9 @@ describe('placesServiceWrapper', () => {
       { address: QUERY_2 },
       expect.any(Function),
     );
-    jest.advanceTimersByTime(1000);
+    jest.advanceTimersByTime(SOME_AMOUNT_OF_TIME_LESS_THAN_LIMIT_MS);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(2);
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(LIMIT_MS);
     await Promise.resolve(); // Put next expect in microtask https://stackoverflow.com/a/57534747/2484443
 
     expect(geocodingService.geocode).toHaveBeenCalledTimes(3);
@@ -117,7 +121,7 @@ describe('placesServiceWrapper', () => {
 
   it("doesn't run two intervals at the same time", async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(5000);
+    jest.setSystemTime(LIMIT_MS);
     const QUERY_1 = "Auburndale, MA, United States";
     const QUERY_2 = "Somerville, MA, United States";
     const QUERY_3 = "Boston, MA, United States";
@@ -126,7 +130,7 @@ describe('placesServiceWrapper', () => {
     const QUERY_6 = "Sao Paulo, SP, Brazil";
     const QUERY_7 = "Florianopolis, SC, Brazil";
 
-    const placesServiceWrapper = new PlacesServiceWrapper(geocodingService);
+    const placesServiceWrapper = makePlacesWrapper();
     placesServiceWrapper.findPlace(QUERY_1);
     jest.advanceTimersByTime(0); // Query runs after timeout of 0, so gotta advance by 0 ms for next tick
     await Promise.resolve();
@@ -140,16 +144,16 @@ describe('placesServiceWrapper', () => {
     await Promise.resolve();
 
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
-    jest.advanceTimersByTime(5000);
-    jest.setSystemTime(10000)
+    jest.advanceTimersByTime(LIMIT_MS);
+    jest.setSystemTime(LIMIT_MS * 2)
     await Promise.resolve();
     expect(geocodingService.geocode).toHaveBeenCalledTimes(2);
-    jest.advanceTimersByTime(5000);
-    jest.setSystemTime(15000)
+    jest.advanceTimersByTime(LIMIT_MS);
+    jest.setSystemTime(LIMIT_MS * 3)
     await Promise.resolve();
     expect(geocodingService.geocode).toHaveBeenCalledTimes(3);
-    jest.advanceTimersByTime(5000);
-    jest.setSystemTime(20000)
+    jest.advanceTimersByTime(LIMIT_MS);
+    jest.setSystemTime(LIMIT_MS * 4)
     await Promise.resolve();
 
     placesServiceWrapper.findPlace(QUERY_4);
@@ -170,12 +174,12 @@ describe('placesServiceWrapper', () => {
 
     expect(geocodingService.geocode).not.toHaveBeenCalledTimes(3);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(4);
-    jest.advanceTimersByTime(5000);
-    jest.setSystemTime(25000)
+    jest.advanceTimersByTime(LIMIT_MS);
+    jest.setSystemTime(LIMIT_MS * 5)
     await Promise.resolve();
     expect(geocodingService.geocode).toHaveBeenCalledTimes(5);
-    jest.advanceTimersByTime(5000);
-    jest.setSystemTime(35000)
+    jest.advanceTimersByTime(LIMIT_MS);
+    jest.setSystemTime(LIMIT_MS * 6)
     await Promise.resolve();
     expect(geocodingService.geocode).not.toHaveBeenCalledTimes(7);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(6);
@@ -184,7 +188,7 @@ describe('placesServiceWrapper', () => {
   it('uses cache and returns from cache as soon as possible even when hit a bajillion times simultaneously with the same query', async () => {
     const QUERY = "Auburndale, MA, United States";
 
-    const placesServiceWrapper = new PlacesServiceWrapper(geocodingService);
+    const placesServiceWrapper = makePlacesWrapper();
     placesServiceWrapper.findPlace(QUERY);
     placesServiceWrapper.findPlace(QUERY);
     placesServiceWrapper.findPlace(QUERY);
