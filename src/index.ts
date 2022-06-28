@@ -82,7 +82,7 @@ document.write(`
   try {
     currentLocation = await getCurrentLocation();
   } catch (e) {
-    currentLocation = { coords: { latitude: 0, longitude: 0 } };
+    currentLocation = { coords: { latitude: 43.620495, longitude: -79.513199 } };
   }
 
   const map = new google.maps.Map(document.getElementById("map") as HTMLElement, {
