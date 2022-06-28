@@ -9,6 +9,7 @@ const loader = new Loader({
 });
 
 const DEFAULT_ZOOM_LEVEL = 6;
+const DEFAULT_MAX_ZOOM_LEVEL = 10;
 
 const getCurrentLocation = (): Promise<GeolocationPosition> => {
   return new Promise((resolve, reject) => {
@@ -90,6 +91,7 @@ document.write(`
       lng: currentLocation.coords.longitude,
     },
     zoom: DEFAULT_ZOOM_LEVEL,
+    maxZoom: DEFAULT_MAX_ZOOM_LEVEL,
   });
 
   const geocodingService = new PlacesServiceWrapper(new google.maps.Geocoder());
