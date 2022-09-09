@@ -11,6 +11,16 @@ describe('placesServiceWrapper', () => {
   const LIMIT_MS = 5000;
   const makePlacesWrapper = () => new PlacesServiceWrapper(geocodingService, LIMIT_MS);
 
+  const mockReturnValue = {
+    place_id: PLACE_ID,
+    geometry: {
+      location: {
+        toJSON: jest.fn().mockReturnValue(LAT_LNG),
+      }
+    },
+    formatted_address: NAME,
+  }
+
   beforeEach(() => {
     jest.useRealTimers();
 
@@ -20,15 +30,6 @@ describe('placesServiceWrapper', () => {
     };
 
     initializeMockGoogleMaps();
-    const mockReturnValue = {
-      place_id: PLACE_ID,
-      geometry: {
-        location: {
-          toJSON: jest.fn().mockReturnValue(LAT_LNG),
-        }
-      },
-      formatted_address: NAME,
-    }
     geocodingService = {
       geocode: jest.fn().mockImplementation((_query, callback) => {
         callback?.(
@@ -82,6 +83,49 @@ describe('placesServiceWrapper', () => {
       location: LAT_LNG,
     }]);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't cache promise rejections as valid results", async () => {
+    jest.useFakeTimers();
+    const QUERY = "Auburndale, MA, United States";
+    const geocode = jest.fn();
+    const placesServiceWrapper = new PlacesServiceWrapper({ geocode }, LIMIT_MS);
+
+    geocode.mockImplementationOnce((_query, callback) => {
+      callback?.(
+        null,
+        'BAD_REQUEST',
+      );
+      return Promise.reject("API over limit");
+    });
+    const place = placesServiceWrapper.findPlace(QUERY);
+    jest.advanceTimersByTime(0); // Query runs after timeout of 0, so gotta advance by 0 ms for next tick
+    await expect(place).rejects.toBe("API over limit");
+    expect(geocode).toHaveBeenCalledTimes(1);
+    expect(geocode).toHaveBeenCalledWith(
+      { address: QUERY },
+    );
+
+    geocode.mockImplementationOnce((_query, callback) => {
+      callback?.(
+        mockReturnValue,
+        'OK',
+      );
+      return Promise.resolve({
+        results: [mockReturnValue]
+      });
+    });
+    const shouldNotBeCached = placesServiceWrapper.findPlace(QUERY);
+    jest.advanceTimersByTime(LIMIT_MS);
+    await expect(shouldNotBeCached).resolves.toEqual([{
+      place_name: NAME,
+      place_id: PLACE_ID,
+      location: LAT_LNG,
+    }]);
+    expect(geocode).toHaveBeenCalledTimes(2);
+    expect(geocode).toHaveBeenCalledWith(
+      { address: QUERY },
+    );
   });
 
   it('rate limits actual calls to google', async () => {

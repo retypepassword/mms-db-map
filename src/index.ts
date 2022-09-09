@@ -82,6 +82,7 @@ document.write(`
   try {
     currentLocation = await getCurrentLocation();
   } catch (e) {
+    // consider using https://dev.maxmind.com/geoip/geolite2-free-geolocation-data city data as a backup
     currentLocation = { coords: { latitude: 43.620495, longitude: -79.513199 } };
   }
 
@@ -102,14 +103,18 @@ document.write(`
       [personData.state, personData.country].filter(v => !!v).join(', '),
       personData.country ?? '',
     ];
+    const RETRY_TIMES = 3;
     for (let searchString of searchStrings) {
-      try {
-        const cityData = await geocodingService.findPlace(searchString);
-        console.log(`Found info for ${searchString}`);
-        return { ...personData, ...cityData[0] };
-      } catch(e) {
-        console.log(`Did not find info for ${searchString} with error ${e}. Attempting with broader search.`);
+      for (let i = 0; i < RETRY_TIMES; i++) {
+        try {
+          const cityData = await geocodingService.findPlace(searchString);
+          console.log(`Found info for ${searchString}`);
+          return { ...personData, ...cityData[0] };
+        } catch(e) {
+          console.log(`Did not find info for ${searchString} with error ${e}. Retrying ${RETRY_TIMES - i} more times.`);
+        }
       }
+      console.log(`Did not find info for ${searchString}. Retrying with broader search`)
     }
     return personData;
   }));

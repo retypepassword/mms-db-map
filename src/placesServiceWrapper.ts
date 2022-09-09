@@ -29,21 +29,26 @@ export class PlacesServiceWrapper {
       return this.cache[search];
     }
 
-    this.cache[search] = this.processInQueue(async () => {
-      const resp = await this.geocodingService.geocode({ address: search })
-      return resp.results.map((result) => ({
-        place_name: result.formatted_address,
-        place_id: result.place_id,
-        location: result.geometry?.location?.toJSON()
-      }));
-    });
+    try {
+      this.cache[search] = this.processInQueue(async () => {
+        const resp = await this.geocodingService.geocode({ address: search })
+        return resp.results.map((result) => ({
+          place_name: result.formatted_address,
+          place_id: result.place_id,
+          location: result.geometry?.location?.toJSON()
+        }));
+      });
 
-    localStorage.setItem("keys", JSON.stringify([...JSON.parse(localStorage.getItem("keys") ?? '[]'), search]));
-    localStorage.setItem(search, JSON.stringify(await this.cache[search]));
-    return this.cache[search];
+      localStorage.setItem("keys", JSON.stringify([...JSON.parse(localStorage.getItem("keys") ?? '[]'), search]));
+      localStorage.setItem(search, JSON.stringify(await this.cache[search]));
+      return this.cache[search];
+    } catch(e) {
+      delete this.cache[search];
+      throw e;
+    }
   };
 
-  private processInQueue = <T>(fn: () => Promise<T>) => {
+  private processInQueue = <T>(fn: () => Promise<T>): Promise<T> => {
     const fnWrappedInQueuePromise = new Promise<T>((resolve, reject) => {
       const query = () => fn().then(resolve).catch(reject);
       this.requestQueue.push(query);
