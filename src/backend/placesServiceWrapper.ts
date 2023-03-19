@@ -1,9 +1,11 @@
+import { IGeocodingService } from "./geocodingService";
+
 export type PlaceInfo = { place_id: string | undefined; place_name: string | undefined; location: google.maps.LatLngLiteral | undefined };
 
 const DEFAULT_LIMIT_MS = 1200;
 
 export class PlacesServiceWrapper {
-  private geocodingService: google.maps.Geocoder;
+  private geocodingService: IGeocodingService;
   private cache: Record<string, PlaceInfo[] | Promise<PlaceInfo[]>>;
 
   private requestQueue: Array<() => void>;
@@ -11,7 +13,7 @@ export class PlacesServiceWrapper {
   private timeLastExecutedUnixMs: number;
   private interval?: NodeJS.Timer;
 
-  constructor(geocodingService: google.maps.Geocoder, limitMs: number = DEFAULT_LIMIT_MS) {
+  constructor(geocodingService: IGeocodingService, limitMs: number = DEFAULT_LIMIT_MS) {
     this.geocodingService = geocodingService;
     this.cache = Object.fromEntries(
         (JSON.parse(localStorage.getItem("keys") ?? '[]') as string[]).map((key) =>
@@ -35,7 +37,7 @@ export class PlacesServiceWrapper {
         return resp.results.map((result) => ({
           place_name: result.formatted_address,
           place_id: result.place_id,
-          location: result.geometry?.location?.toJSON()
+          location: result.geometry?.location
         }));
       });
 

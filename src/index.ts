@@ -4,7 +4,7 @@ import { PlacesServiceWrapper, PlaceInfo } from './placesServiceWrapper';
 
 const loader = new Loader({
   apiKey: "AIzaSyBfyIEhYmWGE879TOJU8E4Te3fZddx9J-U",
-  version: "weekly",
+  version: "quarterly",
   libraries: ["places"]
 });
 

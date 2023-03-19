@@ -1,8 +1,8 @@
-import { initialize as initializeMockGoogleMaps, mockInstances } from "@googlemaps/jest-mocks";
+import { IGeocodingService } from "./geocodingService";
 import { PlacesServiceWrapper } from './placesServiceWrapper';
 
 describe('placesServiceWrapper', () => {
-  let geocodingService: google.maps.Geocoder;
+  let geocodingService: IGeocodingService;
 
   const NAME = "Somewhere, USA";
   const PLACE_ID = "ChIJ_YRChQeD44kRYVc8MchM-6c";
@@ -14,9 +14,7 @@ describe('placesServiceWrapper', () => {
   const mockReturnValue = {
     place_id: PLACE_ID,
     geometry: {
-      location: {
-        toJSON: jest.fn().mockReturnValue(LAT_LNG),
-      }
+      location: LAT_LNG,
     },
     formatted_address: NAME,
   }
@@ -29,7 +27,6 @@ describe('placesServiceWrapper', () => {
       setItem: jest.fn(),
     };
 
-    initializeMockGoogleMaps();
     geocodingService = {
       geocode: jest.fn().mockImplementation((_query, callback) => {
         callback?.(
