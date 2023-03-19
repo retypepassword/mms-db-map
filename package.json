@@ -1,7 +1,7 @@
 {
   "name": "mms-people-map",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "build/backend/index.js",
   "license": "MIT",
   "scripts": {
     "build": "tsc --project tsconfig.build.json && webpack",
