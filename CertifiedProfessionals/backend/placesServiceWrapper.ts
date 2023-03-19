@@ -3,7 +3,7 @@ import { storage } from './singletons';
 
 export type PlaceInfo = { place_id: string | undefined; place_name: string | undefined; location: google.maps.LatLngLiteral | undefined };
 
-const DEFAULT_LIMIT_MS = 1200;
+const DEFAULT_LIMIT_MS = 20;
 
 export class PlacesServiceWrapper {
   private geocodingService: IGeocodingService;
