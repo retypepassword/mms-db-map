@@ -6,11 +6,11 @@ import { GeocodingService } from './geocodingService';
 import { PlacesServiceWrapper, PlaceInfo } from './placesServiceWrapper';
 
 const LISTS = {
-  Guide: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Guide"
+  guide: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Guide"
 };
 
-export async function run() {
-  const response = await fetch(LISTS.Guide);
+export async function run({ list = 'guide' }: { list: string } = { list: 'guide' }) {
+  const response = await fetch(list.toLowerCase());
   const dom = new JSDOM(await response.text());
   const extractedPersonData = extractData(dom.window.document);
 

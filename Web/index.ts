@@ -1,6 +1,6 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import type { PersonData } from './backend/extractData';
-import type { PlaceInfo } from './backend/placesServiceWrapper';
+import type { PersonData } from '../CertifiedProfessionals/backend/extractData';
+import type { PlaceInfo } from '../CertifiedProfessionals/backend/placesServiceWrapper';
 
 const loader = new Loader({
   apiKey: "AIzaSyBfyIEhYmWGE879TOJU8E4Te3fZddx9J-U",

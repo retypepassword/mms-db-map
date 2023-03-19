@@ -1,3 +1,9 @@
 {
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"azureFunctions.deploySubpath": ".",
+	"azureFunctions.postDeployTask": "yarn install (functions)",
+	"azureFunctions.projectLanguage": "TypeScript",
+	"azureFunctions.projectRuntime": "~4",
+	"debug.internalConsoleOptions": "neverOpen",
+	"azureFunctions.preDeployTask": "yarn prune (functions)"
 }
