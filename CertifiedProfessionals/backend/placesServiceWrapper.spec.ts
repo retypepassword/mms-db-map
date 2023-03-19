@@ -1,5 +1,15 @@
 import { IGeocodingService } from "./geocodingService";
 import { PlacesServiceWrapper } from './placesServiceWrapper';
+import { CosmosDbStorageService } from './storageService';
+
+jest.mock('./storageService', () => ({
+  CosmosDbStorageService: class CosmosDbStorageService {
+    getItem() {
+      return null;
+    }
+    setItem() { }
+  }
+}))
 
 describe('placesServiceWrapper', () => {
   let geocodingService: IGeocodingService;
@@ -21,11 +31,6 @@ describe('placesServiceWrapper', () => {
 
   beforeEach(() => {
     jest.useRealTimers();
-
-    (global as any).localStorage = {
-      getItem: jest.fn().mockReturnValue(null),
-      setItem: jest.fn(),
-    };
 
     geocodingService = {
       geocode: jest.fn().mockImplementation((_query, callback) => {
@@ -258,4 +263,39 @@ describe('placesServiceWrapper', () => {
       { address: QUERY },
     );
   });
+  
+  it('Restores from cache when restoring from cache called', async () => {
+    const getItemSpy = jest.spyOn(CosmosDbStorageService.prototype, 'getItem');
+    const placesServiceWrapper = makePlacesWrapper();
+    await placesServiceWrapper.restoreCache();
+    expect(getItemSpy).toHaveBeenCalled();
+    
+    getItemSpy.mockResolvedValueOnce([
+      'Monrovia, CA',
+      'Dublin, CA',
+      'Albany, CA'
+    ]);
+    getItemSpy.mockResolvedValueOnce([{
+      place_id: "hahaha",
+      place_name: "Monrovia, CA",
+      location: undefined
+    }]);
+    getItemSpy.mockResolvedValueOnce([{
+      place_id: "hohoho",
+      place_name: "Dublin, CA",
+      location: undefined
+    }]);
+    getItemSpy.mockResolvedValueOnce([{
+      place_id: "hehehe",
+      place_name: "Albany, CA",
+      location: undefined
+    }]);
+    await placesServiceWrapper.restoreCache();
+    
+    await expect(placesServiceWrapper.findPlace("Monrovia, CA")).resolves.toEqual([{
+      place_id: "hahaha",
+      place_name: "Monrovia, CA",
+      location: undefined
+    }]);
+  })
 })

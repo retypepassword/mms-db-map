@@ -1,13 +1,13 @@
 import { Client, GeocodeResponse, Status } from '@googlemaps/google-maps-services-js';
-import { GeocodingService } from './geocodingService';
+import { GoogleGeocodingService } from './geocodingService';
 jest.mock('@googlemaps/google-maps-services-js');
 
-describe('GeocodingService', () => {
+describe('GoogleGeocodingService', () => {
   it("Wraps google-maps-services-js's geocode to have a similar interface as google.maps.Geocoder", async () => {
     const KEY = 'abc';
     const ADDRESS = 'haha';
     const geocodeMock = jest.spyOn(Client.prototype, 'geocode');
-    const geocodingService = new GeocodingService({ key: KEY });
+    const geocodingService = new GoogleGeocodingService({ key: KEY });
     
     const result = [
       {
