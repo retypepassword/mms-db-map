@@ -3,7 +3,8 @@ import { run } from './backend';
 
 const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
     const url = new URL(req.url)
-    const response = JSON.stringify(await run({ list: url.pathname }))
+    const list = url.searchParams.get('list') ?? 'guide';
+    const response = JSON.stringify(await run({ list }));
     context.log(`HTTP trigger function processed a request for ${url.pathname}`);
 
     context.res = {

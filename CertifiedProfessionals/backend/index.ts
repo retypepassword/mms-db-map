@@ -1,16 +1,16 @@
 import { Client } from '@googlemaps/google-maps-services-js';
 import { JSDOM } from 'jsdom';
-import fetch from 'node-fetch';
 import { extractData, PersonData } from "./extractData";
 import { GeocodingService } from './geocodingService';
 import { PlacesServiceWrapper, PlaceInfo } from './placesServiceWrapper';
 
-const LISTS = {
+const LISTS: Record<string, string> = {
   guide: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Guide"
 };
 
 export async function run({ list = 'guide' }: { list: string } = { list: 'guide' }) {
-  const response = await fetch(list.toLowerCase());
+  const fetch = (await import('node-fetch')).default;
+  const response = await fetch(LISTS[list.toLowerCase()]);
   const dom = new JSDOM(await response.text());
   const extractedPersonData = extractData(dom.window.document);
 
