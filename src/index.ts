@@ -1,11 +1,10 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import { extractData, PersonData } from "./extractData";
-import { PlacesServiceWrapper, PlaceInfo } from './placesServiceWrapper';
+import type { PersonData } from './backend/extractData';
+import type { PlaceInfo } from './backend/placesServiceWrapper';
 
 const loader = new Loader({
   apiKey: "AIzaSyBfyIEhYmWGE879TOJU8E4Te3fZddx9J-U",
   version: "quarterly",
-  libraries: ["places"]
 });
 
 const DEFAULT_ZOOM_LEVEL = 6;
@@ -19,62 +18,51 @@ const getCurrentLocation = (): Promise<GeolocationPosition> => {
   });
 };
 
-const extractedPersonData = extractData(document);
-document.write(`
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <title>Certified Professionals</title>
-      <link href="/assets/css/app.css" rel="stylesheet" type="text/css">
-      <style type="text/css">
-        #map {
-          height: 100%;
-        }
+const style = document.createElement('style');
+const styleText = document.createTextNode(`
+  #map {
+    height: 100%;
+  }
 
-        html, body {
-          height: 100%;
-          margin: 0;
-          padding: 0;
-        }
+  .person-name, .place-name {
+    font-size: 16px;
+    font-weight: 400;
+  }
 
-        .person-name, .place-name {
-          font-size: 16px;
-          font-weight: 400;
-        }
+  .place-name {
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
 
-        .place-name {
-          margin-bottom: 10px;
-          font-weight: bold;
-        }
+  .info-list {
+    list-style-type: none;
+    padding: 0 0 0 4px;
+    font-weight: 400;
+  }
 
-        .info-list {
-          list-style-type: none;
-          padding: 0 0 0 4px;
-          font-weight: 400;
-        }
+  .info-list a {
+    color: #566295 !important;
+    font-size: 12px;
+    line-height: 14px;
+    padding: 0px;
+    margin: 0px;
+  }
 
-        .info-list a {
-          color: #566295 !important;
-          font-size: 12px;
-          line-height: 14px;
-          padding: 0px;
-          margin: 0px;
-        }
+  .info-list a span {
+    margin-right: 2px;
+  }
 
-        .info-list a span {
-          margin-right: 2px;
-        }
-
-        .not-available {
-          color: gray;
-        }
-      </style>
-    </head>
-    <body>
-      <div id="map"></div>
-    </body>
-  </html>
+  .not-available {
+    color: gray;
+  }
 `);
+style.appendChild(styleText);
+document.head.appendChild(style);
+
+const scriptTag = document.getElementById('certified-professionals-map');
+const mapDiv = document.createElement('div');
+mapDiv.id = "map";
+document.body.insertBefore(mapDiv, scriptTag);
 
 (async () => {
   const google = await loader.load();
@@ -95,40 +83,8 @@ document.write(`
     maxZoom: DEFAULT_MAX_ZOOM_LEVEL,
   });
 
-  const geocodingService = new PlacesServiceWrapper(new google.maps.Geocoder());
-  const personDataWithCityData = await Promise.all(extractedPersonData.map(async (personData): Promise<PersonData | PersonData & PlaceInfo> => {
-    const searchStrings = [
-      [personData.city, personData.state, personData.country].filter(v => !!v).join(', '),
-      [personData.city, personData.country].filter(v => !!v).join(', '),
-      [personData.state, personData.country].filter(v => !!v).join(', '),
-      personData.country ?? '',
-    ];
-    const RETRY_TIMES = 3;
-    for (let searchString of searchStrings) {
-      for (let i = 0; i < RETRY_TIMES; i++) {
-        try {
-          const cityData = await geocodingService.findPlace(searchString);
-          console.log(`Found info for ${searchString}`);
-          return { ...personData, ...cityData[0] };
-        } catch(e) {
-          console.log(`Did not find info for ${searchString} with error ${e}. Retrying ${RETRY_TIMES - i} more times.`);
-        }
-      }
-      console.log(`Did not find info for ${searchString}. Retrying with broader search`)
-    }
-    return personData;
-  }));
-
-  const peopleByPlaceId = personDataWithCityData.reduce((uniqueCities, currentPerson) => {
-    const placeId = 'location' in currentPerson && currentPerson.place_id ? currentPerson.place_id : 'other';
-    return {
-      ...uniqueCities,
-      [placeId]: [
-        ...(uniqueCities[placeId] ?? []),
-        currentPerson
-      ]
-    };
-  }, {} as { [index: string]: Array<PersonData & Partial<PlaceInfo>> });
+  const response = await fetch('https://someworker.ericflin.workers.dev?page=Guide');
+  const peopleByPlaceId: Record<string, Array<PersonData & Partial<PlaceInfo>>> = await response.json();
 
   let openInfoWindow: google.maps.InfoWindow | null = null;
 
