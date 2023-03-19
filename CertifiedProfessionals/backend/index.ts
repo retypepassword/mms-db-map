@@ -1,7 +1,6 @@
-import { Client } from '@googlemaps/google-maps-services-js';
 import { JSDOM } from 'jsdom';
 import { extractData, PersonData } from "./extractData";
-import { GeocodingService } from './geocodingService';
+import { GoogleGeocodingService } from './geocodingService';
 import { PlacesServiceWrapper, PlaceInfo } from './placesServiceWrapper';
 
 const LISTS: Record<string, string> = {
@@ -14,7 +13,7 @@ export async function run({ list = 'guide' }: { list: string } = { list: 'guide'
   const dom = new JSDOM(await response.text());
   const extractedPersonData = extractData(dom.window.document);
 
-  const geocodingService = new PlacesServiceWrapper(new GeocodingService({ key: "AIzaSyBfyIEhYmWGE879TOJU8E4Te3fZddx9J-U" }));
+  const geocodingService = new PlacesServiceWrapper(new GoogleGeocodingService({ key: "AIzaSyBfyIEhYmWGE879TOJU8E4Te3fZddx9J-U" }));
   const personDataWithCityData = await Promise.all(extractedPersonData.map(async (personData): Promise<PersonData | PersonData & PlaceInfo> => {
     const searchStrings = [
       [personData.city, personData.state, personData.country].filter(v => !!v).join(', '),

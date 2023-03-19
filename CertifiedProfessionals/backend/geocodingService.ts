@@ -15,7 +15,7 @@ export interface IGeocodingService {
   }>;
 };
 
-export class GeocodingService implements IGeocodingService {
+export class GoogleGeocodingService implements IGeocodingService {
   private key: string;
   private client: Client
 
