@@ -67,7 +67,7 @@ export class PlacesServiceWrapper {
         }));
       });
 
-      // Need to await to allow catch block to work on Promise if necessary
+      // Need to `await` to allow catch block to catch Promise rejection if necessary
       return await this.cache[search];
     } catch(e) {
       delete this.cache[search];

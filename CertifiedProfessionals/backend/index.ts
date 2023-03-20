@@ -4,10 +4,13 @@ import { GoogleGeocodingService } from './geocodingService';
 import { PlacesServiceWrapper, PlaceInfo } from './placesServiceWrapper';
 
 const LISTS: Record<string, string> = {
-  guide: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Guide"
+  guide: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Guide",
+  healer: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Healer",
+  teacher: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Teacher",
+  lap: "https://mmsdb.mmsintadmin.com/lists/cert/Certified%20Life%20Activation%20Practitioner"
 };
 
-export async function run({ list = 'guide' }: { list: string } = { list: 'guide' }) {
+export async function run({ list = 'lap' }: { list: string } = { list: 'lap' }) {
   const fetch = (await import('node-fetch')).default;
   const response = await fetch(LISTS[list.toLowerCase()]);
   const dom = new JSDOM(await response.text());
