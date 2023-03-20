@@ -3,7 +3,7 @@ import { storage } from './singletons';
 
 export type PlaceInfo = { place_id: string | undefined; place_name: string | undefined; location: google.maps.LatLngLiteral | undefined };
 
-const DEFAULT_LIMIT_MS = 20;
+const DEFAULT_LIMIT_MS = 100;
 
 export class PlacesServiceWrapper {
   private geocodingService: IGeocodingService;
@@ -24,18 +24,29 @@ export class PlacesServiceWrapper {
   }
   
   restoreCache = async (): Promise<void> => {
-    const keys = await storage.getItem<string[]>('keys');
-    const places = keys?.map(async (key) => {
-      const item = await storage.getItem<PlaceInfo[]>(key);
-      return [key, item ?? []];
-    })
+    const places = await storage.getItem<Record<string, PlaceInfo[]>>('places');
     if (!places) {
       this.cache = {};
       return;
     }
 
-    this.cache = Object.fromEntries(await Promise.all(places));
+    this.cache = places;
   };
+  
+  updateCache = async (): Promise<void> => {
+    await storage.setItem("places", Object.fromEntries(
+      await Promise.all(
+        Object.entries(this.cache).map(async ([key, promise]) => {
+          try {
+            const value = await promise;
+            return [key, value];
+          } catch {
+            return [key, undefined];
+          }
+        })
+      )
+    ));
+  }
 
   findPlace = async (search: string): Promise<PlaceInfo[]> => {
     if (this.cache[search]) {
@@ -52,9 +63,6 @@ export class PlacesServiceWrapper {
         }));
       });
 
-      const keys = await storage.getItem<string[]>("keys") ?? []
-      storage.setItem("keys", [...keys, search]);
-      storage.setItem(search, await this.cache[search]);
       return this.cache[search];
     } catch(e) {
       delete this.cache[search];

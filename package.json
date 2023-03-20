@@ -2,7 +2,7 @@
   "name": "mms-people-map",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/backend/index.js",
+  "main": "dist/CertifiedProfessionals/index.js",
   "scripts": {
     "build": "tsc --project tsconfig.build.json && webpack",
     "test": "jest",

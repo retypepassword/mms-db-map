@@ -2,7 +2,7 @@ import { Container, CosmosClient, ItemDefinition, Resource } from "@azure/cosmos
 
 export interface IStorageService {
   getItem<T>(id: string): Promise<T | undefined>;
-  setItem<T>(id: string, value: T): void;
+  setItem<T>(id: string, value: T): Promise<void>;
 }
 
 export class CosmosDbStorageService implements IStorageService {
@@ -20,7 +20,7 @@ export class CosmosDbStorageService implements IStorageService {
   }
 
   async getItem<T>(id: string) {
-    const response = await this.container?.item(id).read<{ value: T }>();
+    const response = await this.container?.item(id, id).read<{ value: T }>();
     return response?.resource?.value;
   };
 

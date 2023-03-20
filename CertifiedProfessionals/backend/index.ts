@@ -14,6 +14,8 @@ export async function run({ list = 'guide' }: { list: string } = { list: 'guide'
   const extractedPersonData = extractData(dom.window.document);
 
   const geocodingService = new PlacesServiceWrapper(new GoogleGeocodingService({ key: "AIzaSyBfyIEhYmWGE879TOJU8E4Te3fZddx9J-U" }));
+
+  await geocodingService.restoreCache()
   const personDataWithCityData = await Promise.all(extractedPersonData.map(async (personData): Promise<PersonData | PersonData & PlaceInfo> => {
     const searchStrings = [
       [personData.city, personData.state, personData.country].filter(v => !!v).join(', '),
@@ -36,6 +38,7 @@ export async function run({ list = 'guide' }: { list: string } = { list: 'guide'
     }
     return personData;
   }));
+  await geocodingService.updateCache();
 
   const peopleByPlaceId = personDataWithCityData.reduce((uniqueCities, currentPerson) => {
     const placeId = 'location' in currentPerson && currentPerson.place_id ? currentPerson.place_id : 'other';
