@@ -20,7 +20,7 @@ describe('CosmosDbStorageService', () => {
       CosmosClient: cosmosClientMock
     }))
     const { CosmosDbStorageService } = require('./storageService');
-    const cosmosStorageService = new CosmosDbStorageService(CONFIG);
+    new CosmosDbStorageService(CONFIG);
     expect(cosmosClientMock).toHaveBeenCalledWith(expect.objectContaining({
       endpoint: CONFIG.apiUrl,
       key: CONFIG.apiKey
@@ -35,7 +35,7 @@ describe('CosmosDbStorageService', () => {
     const dbSpy = jest.spyOn(actualCosmos.CosmosClient.prototype, 'database');
     const contSpy = jest.spyOn(actualCosmos.Database.prototype, 'container');
     const { CosmosDbStorageService } = require('./storageService');
-    const cosmosStorageService = new CosmosDbStorageService(CONFIG);
+    new CosmosDbStorageService(CONFIG);
     expect(dbSpy).toHaveBeenCalledWith(CONFIG.db);
     expect(contSpy).toHaveBeenCalledWith(CONFIG.containerName);
   });

@@ -1,4 +1,4 @@
-import { Client, GeocodeResponse, GeocodeResult, Status } from '@googlemaps/google-maps-services-js';
+import { GoogleGeocodingService, IGeocodingService } from './geocodingService';
 import { htmlOnePersonPerCity as mockHtmlOnePersonPerCity } from './extractDataTestData.testHelper';
 import { run } from '.';
 
@@ -19,7 +19,7 @@ const result1 = [
     },
     place_id: 'place-id-123',
     formatted_address: 'Fortaleza, CE, Brazil',
-  } as unknown as GeocodeResult
+  }
 ];
 
 const result2 = [
@@ -32,23 +32,17 @@ const result2 = [
     },
     place_id: 'place-id-234',
     formatted_address: 'Florianopolis, SC, Brazil',
-  } as unknown as GeocodeResult
+  }
 ];
 
 describe('index', () => {
   beforeEach(() => {
-    (global as any).localStorage = {
-      getItem: jest.fn().mockReturnValue(null),
-      setItem: jest.fn(),
-    };
-    
-    jest.spyOn(Client.prototype, 'geocode')
-      .mockResolvedValueOnce({
-        data: { results: result1, status: Status.OK, error_message: '' }
-      } as GeocodeResponse)
-      .mockResolvedValueOnce({
-        data: { results: result2, status: Status.OK, error_message: '' }
-      } as GeocodeResponse);
+    jest.spyOn<IGeocodingService, 'geocode'>(GoogleGeocodingService.prototype, 'geocode')
+      .mockResolvedValueOnce({ results: result1 })
+      .mockResolvedValueOnce({ results: result2 });
+    jest.replaceProperty(process, 'env', {
+      MAPS_API_KEY: 'haha'
+    })
   });
 
   it('Should fetch data from some site, turn it into jsdom, and call extract data on it', async () => {

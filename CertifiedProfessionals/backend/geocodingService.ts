@@ -24,7 +24,7 @@ export class GoogleGeocodingService implements IGeocodingService {
     this.client = new Client({})
   }
 
-  geocode = async ({ address }: { address: string }) => {
+  async geocode({ address }: { address: string }) {
     const response = await this.client.geocode({
       params: {
         key: this.key,

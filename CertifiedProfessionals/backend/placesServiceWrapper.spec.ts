@@ -86,6 +86,29 @@ describe('placesServiceWrapper', () => {
     }]);
     expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
   });
+  
+  it("Only draws from cache and doesn't call API if API class is null", async () => {
+    const placesServiceWrapper = new PlacesServiceWrapper(null);
+    const getItemSpy = jest.spyOn(CosmosDbStorageService.prototype, 'getItem');
+    await placesServiceWrapper.restoreCache();
+    expect(getItemSpy).toHaveBeenCalled();
+    
+    getItemSpy.mockResolvedValueOnce({
+      'Monrovia, CA': [{
+        place_id: "hahaha",
+        place_name: "Monrovia, CA",
+        location: undefined
+      }]
+    });
+    await placesServiceWrapper.restoreCache();
+    
+    await expect(placesServiceWrapper.findPlace("Monrovia, CA")).resolves.toEqual([{
+      place_id: "hahaha",
+      place_name: "Monrovia, CA",
+      location: undefined
+    }]);
+    await expect(placesServiceWrapper.findPlace("Somewhere Else")).rejects.toEqual(expect.anything());
+  });
 
   it("doesn't cache promise rejections as valid results", async () => {
     jest.useFakeTimers();
@@ -270,26 +293,13 @@ describe('placesServiceWrapper', () => {
     await placesServiceWrapper.restoreCache();
     expect(getItemSpy).toHaveBeenCalled();
     
-    getItemSpy.mockResolvedValueOnce([
-      'Monrovia, CA',
-      'Dublin, CA',
-      'Albany, CA'
-    ]);
-    getItemSpy.mockResolvedValueOnce([{
-      place_id: "hahaha",
-      place_name: "Monrovia, CA",
-      location: undefined
-    }]);
-    getItemSpy.mockResolvedValueOnce([{
-      place_id: "hohoho",
-      place_name: "Dublin, CA",
-      location: undefined
-    }]);
-    getItemSpy.mockResolvedValueOnce([{
-      place_id: "hehehe",
-      place_name: "Albany, CA",
-      location: undefined
-    }]);
+    getItemSpy.mockResolvedValueOnce({
+      'Monrovia, CA': [{
+        place_id: "hahaha",
+        place_name: "Monrovia, CA",
+        location: undefined
+      }]
+    });
     await placesServiceWrapper.restoreCache();
     
     await expect(placesServiceWrapper.findPlace("Monrovia, CA")).resolves.toEqual([{

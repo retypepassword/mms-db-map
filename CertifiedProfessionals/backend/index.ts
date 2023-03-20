@@ -13,7 +13,7 @@ export async function run({ list = 'guide' }: { list: string } = { list: 'guide'
   const dom = new JSDOM(await response.text());
   const extractedPersonData = extractData(dom.window.document);
 
-  const geocodingService = new PlacesServiceWrapper(new GoogleGeocodingService({ key: "AIzaSyBfyIEhYmWGE879TOJU8E4Te3fZddx9J-U" }));
+  const geocodingService = new PlacesServiceWrapper(process.env.MAPS_API_KEY ? new GoogleGeocodingService({ key: process.env.MAPS_API_KEY }) : null);
 
   await geocodingService.restoreCache()
   const personDataWithCityData = await Promise.all(extractedPersonData.map(async (personData): Promise<PersonData | PersonData & PlaceInfo> => {

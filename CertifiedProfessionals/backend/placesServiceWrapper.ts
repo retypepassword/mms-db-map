@@ -6,7 +6,7 @@ export type PlaceInfo = { place_id: string | undefined; place_name: string | und
 const DEFAULT_LIMIT_MS = 100;
 
 export class PlacesServiceWrapper {
-  private geocodingService: IGeocodingService;
+  private geocodingService: IGeocodingService | null;
   private cache: Record<string, PlaceInfo[] | Promise<PlaceInfo[]>>;
 
   private requestQueue: Array<() => void>;
@@ -14,7 +14,7 @@ export class PlacesServiceWrapper {
   private timeLastExecutedUnixMs: number;
   private interval?: NodeJS.Timer;
 
-  constructor(geocodingService: IGeocodingService, limitMs: number = DEFAULT_LIMIT_MS) {
+  constructor(geocodingService: IGeocodingService | null, limitMs: number = DEFAULT_LIMIT_MS) {
     this.geocodingService = geocodingService;
     this.cache = {};
 
@@ -55,6 +55,10 @@ export class PlacesServiceWrapper {
 
     try {
       this.cache[search] = this.processInQueue(async () => {
+        if (!this.geocodingService) {
+          throw "No geocoding service defined";
+        }
+
         const resp = await this.geocodingService.geocode({ address: search })
         return resp.results.map((result) => ({
           place_name: result.formatted_address,
@@ -63,7 +67,8 @@ export class PlacesServiceWrapper {
         }));
       });
 
-      return this.cache[search];
+      // Need to await to allow catch block to work on Promise if necessary
+      return await this.cache[search];
     } catch(e) {
       delete this.cache[search];
       throw e;
