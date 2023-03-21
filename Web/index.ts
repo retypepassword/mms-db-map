@@ -10,14 +10,6 @@ const loader = new Loader({
 const DEFAULT_ZOOM_LEVEL = 6;
 const DEFAULT_MAX_ZOOM_LEVEL = 10;
 
-const getCurrentLocation = (): Promise<GeolocationPosition> => {
-  return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(resolve, reject);
-    }
-  });
-};
-
 const style = document.createElement('style');
 const styleText = document.createTextNode(`
   #map {
@@ -63,15 +55,16 @@ document.head.appendChild(style);
 const scriptTag = document.getElementById('certified-professionals-map');
 const mapDiv = document.createElement('div');
 mapDiv.id = "map";
-document.body.insertBefore(mapDiv, scriptTag);
+scriptTag?.parentElement?.insertBefore(mapDiv, scriptTag);
 
 (async () => {
   const google = await loader.load();
   let currentLocation;
   try {
-    currentLocation = await getCurrentLocation();
+    const ipLatLongResponse = await fetch('https://mms-certified-professionals.azurewebsites.net/api/IpAddrLatLong');
+    const { lat: latitude, lng: longitude }: { lat: number, lng: number } = await ipLatLongResponse.json();
+    currentLocation = { coords: { latitude, longitude } };
   } catch (e) {
-    // consider using https://dev.maxmind.com/geoip/geolite2-free-geolocation-data city data as a backup
     currentLocation = { coords: { latitude: 43.620495, longitude: -79.513199 } };
   }
 
