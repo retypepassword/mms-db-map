@@ -14,6 +14,20 @@
       "type": "http",
       "direction": "out",
       "name": "res"
+    },
+    {
+      "name": "cachedData",
+      "type": "blob",
+      "direction": "in",
+      "path": "mms-certified-professionals/cached",
+      "connection": "BLOB_CONNECTION_STRING"
+    },
+    {
+      "name": "newCachedData",
+      "type": "blob",
+      "direction": "out",
+      "path": "mms-certified-professionals/cached",
+      "connection": "BLOB_CONNECTION_STRING"
     }
   ],
   "scriptFile": "../dist/CertifiedProfessionals/index.js"

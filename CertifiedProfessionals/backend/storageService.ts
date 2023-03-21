@@ -1,4 +1,4 @@
-import { Container, CosmosClient, ItemDefinition, Resource } from "@azure/cosmos";
+import { Container, CosmosClient } from "@azure/cosmos";
 
 export interface IStorageService {
   getItem<T>(id: string): Promise<T | undefined>;
