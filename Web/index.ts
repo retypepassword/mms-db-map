@@ -21,7 +21,8 @@ const getCurrentLocation = (): Promise<GeolocationPosition> => {
 const style = document.createElement('style');
 const styleText = document.createTextNode(`
   #map {
-    height: 100%;
+    width: 800px;
+    height: 500px;
   }
 
   .person-name, .place-name {
@@ -83,7 +84,7 @@ document.body.insertBefore(mapDiv, scriptTag);
     maxZoom: DEFAULT_MAX_ZOOM_LEVEL,
   });
 
-  const response = await fetch('https://someworker.ericflin.workers.dev?page=Guide');
+  const response = await fetch('https://mms-certified-professionals.azurewebsites.net/api/CertifiedProfessionals?list=lap');
   const peopleByPlaceId: Record<string, Array<PersonData & Partial<PlaceInfo>>> = await response.json();
 
   let openInfoWindow: google.maps.InfoWindow | null = null;
